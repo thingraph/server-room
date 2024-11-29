@@ -115,10 +115,10 @@ export class Viewer {
     this.scene.background = new THREE.Color(0xeeeeee);
 
     // For test
-    const helper = new THREE.GridHelper(10000, 100);
-    helper.position.y = -5;
-    this.scene.add(helper);
-    this.scene.add(new THREE.AxesHelper(100000));
+    // const helper = new THREE.GridHelper(10000, 100);
+    // helper.position.y = -5;
+    // this.scene.add(helper);
+    // this.scene.add(new THREE.AxesHelper(100000));
   }
 
   protected initLights() {
@@ -338,7 +338,7 @@ export class Viewer {
   loadData() {
     createWorld(this.scene!);
     this.createRack(this.scene!);
-    this.createPathFlight();
+    // this.createPathFlight();
     this.render();
   }
 
@@ -375,6 +375,7 @@ export class Viewer {
     }
   }
 
+  // @ts-ignore
   private createPathFlight() {
     const points = [
       [-2108.1056622497044, 0, -1768.2852733169518],

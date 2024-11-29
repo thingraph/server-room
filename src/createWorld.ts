@@ -1,5 +1,4 @@
 import { createWall } from "./model/createWall.js";
-import { createRack } from "./model/createRack.js";
 import { createPlant } from "./model/createPlant.js";
 import { createColumn } from "./model/createColumn.js";
 import * as THREE from "three";
