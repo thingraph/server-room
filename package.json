@@ -1,0 +1,23 @@
+{
+  "name": "room3d",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "@tweenjs/tween.js": "^25.0.0",
+    "camera-controls": "^2.9.0",
+    "three": "^0.170.0",
+    "three-bvh-csg": "^0.0.16",
+    "three-mesh-bvh": "^0.8.3"
+  }
+}
