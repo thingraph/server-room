@@ -345,12 +345,12 @@ export class Viewer {
   private createRack(scene: THREE.Scene) {
     // 机柜
     const rackMap = {
-      sideMap: "/assets/rack2/r1srack.jpg",
-      topMap: "/assets/rack2/r1track.jpg",
-      frameMap: "/assets/rack2/r1frack42.png",
-      frontDoorMap: "/assets/rack2/r1frack.jpg",
-      backDoorMap: "/assets/rack2/r1brack.jpg",
-      rackBack: "/assets/rack2/r1brack.jpg",
+      sideMap: "./assets/rack2/r1srack.jpg",
+      topMap: "./assets/rack2/r1track.jpg",
+      frameMap: "./assets/rack2/r1frack42.png",
+      frontDoorMap: "./assets/rack2/r1frack.jpg",
+      backDoorMap: "./assets/rack2/r1brack.jpg",
+      rackBack: "./assets/rack2/r1brack.jpg",
     };
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 20; j++) {
