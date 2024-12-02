@@ -33,6 +33,8 @@ export class Viewer {
     // depthTest: false,
   });
 
+  private isHighlighted = false;
+  private rackObject?: THREE.Mesh;
   protected tween = new Group();
 
   constructor(container: HTMLElement) {
@@ -180,11 +182,18 @@ export class Viewer {
   }
 
   private handle_mouseRight() {
+    if (this.rackObject) {
+      const frontDoor = this.rackObject.getObjectByName("rack-front-door")!;
+      this.animiteObject(frontDoor);
+      const backDoor = this.rackObject.getObjectByName("rack-back-door")!;
+      this.animiteObject(backDoor);
+    }
     this.clearHighlight();
     this.cameraControls?.reset(true);
   }
 
   private handle_dblclick(event: MouseEvent) {
+    if (this.isHighlighted) return;
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, this.camera!);
@@ -193,64 +202,58 @@ export class Viewer {
       const object = intersects[0].object;
       console.log(object);
       console.log("points:", intersects[0].point.toArray());
-      if (object.userData.animation) {
-        const animatInfo = object.userData.animation.split(":");
-        const anchor = animatInfo[1];
-        const rotationAngle = parseInt(animatInfo[2]);
-        const during = parseInt(animatInfo[3]);
-        if (this.isRack(object)) {
-          const frontDoor = object.parent?.getObjectByName("rack-front-door");
-          if (frontDoor) {
-            const box = new THREE.Box3().setFromObject(frontDoor);
-            const lookAt = box.getCenter(new THREE.Vector3());
-            const direction = frontDoor
-              .getWorldDirection(new THREE.Vector3())
-              .normalize();
-            const size = box.getSize(new THREE.Vector3());
-            const radius = size.length() / 2;
-            const distance =
-              this.cameraControls?.getDistanceToFitSphere(radius);
-            const position = lookAt
-              .clone()
-              .add(direction.multiplyScalar(distance!));
-
-            // 飞向机柜门正面
-            this.cameraControls
-              ?.setLookAt(
-                position.x,
-                position.y,
-                position.z,
-                lookAt.x,
-                lookAt.y,
-                lookAt.z,
-                true
-              )
-              .then(() => {
-                this.animateRotate(
-                  object as THREE.Mesh,
-                  anchor,
-                  rotationAngle,
-                  during
-                );
-              });
-          }
-
-          // 虚化其他物体
-          object.parent!.removeFromParent();
-          this.highlightScene();
-          this.scene?.add(object.parent!);
-        } else {
-          this.animateRotate(
-            object as THREE.Mesh,
-            anchor,
-            rotationAngle,
-            during
-          );
-        }
+      if (this.isRack(object)) {
+        this.flyToRack(object.parent!)?.then(() => {
+          const frontDoor = object.parent?.getObjectByName("rack-front-door")!;
+          this.animiteObject(frontDoor);
+          const backDoor = object.parent?.getObjectByName("rack-back-door")!;
+          this.animiteObject(backDoor);
+        });
+        this.rackObject = object.parent as THREE.Mesh;
+        // 虚化其他物体
+        object.parent!.removeFromParent();
+        this.highlightScene();
+        this.scene?.add(object.parent!);
       } else {
-        this.cameraControls?.moveTo(...intersects[0].point.toArray(), true);
+        if (object.userData.animation) {
+          this.animiteObject(object);
+        } else {
+          this.cameraControls?.moveTo(...intersects[0].point.toArray(), true);
+        }
       }
     }
+  }
+
+  protected flyToRack(rackObject: THREE.Object3D) {
+    const box = new THREE.Box3().setFromObject(rackObject);
+    const lookAt = box.getCenter(new THREE.Vector3());
+    const direction = rackObject
+      .getWorldDirection(new THREE.Vector3())
+      .normalize();
+    const size = box.getSize(new THREE.Vector3());
+    const radius = size.length() / 1.5;
+    const distance = this.cameraControls?.getDistanceToFitSphere(radius);
+    const position = lookAt.clone().add(direction.multiplyScalar(distance!));
+
+    // 飞向机柜门正面
+    return this.cameraControls
+      ?.setLookAt(
+        position.x,
+        position.y,
+        position.z,
+        lookAt.x,
+        lookAt.y,
+        lookAt.z,
+        true
+      );
+  }
+
+  protected animiteObject(object: THREE.Object3D) {
+    const animatInfo = object.userData.animation.split(":");
+    const anchor = animatInfo[1];
+    const rotationAngle = parseInt(animatInfo[2]);
+    const during = parseInt(animatInfo[3]);
+    this.animateRotate(object as THREE.Mesh, anchor, rotationAngle, during);
   }
 
   protected isRack(object: THREE.Object3D) {
@@ -265,6 +268,7 @@ export class Viewer {
         obj.material = this.blurMaterial;
       }
     });
+    this.isHighlighted = true;
   }
 
   clearHighlight() {
@@ -275,6 +279,7 @@ export class Viewer {
         obj.material = obj.__originalMaterial;
       }
     });
+    this.isHighlighted = false;
     this.render();
   }
 
@@ -389,14 +394,8 @@ export class Viewer {
     const vectors = points.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
     const curve = new THREE.CatmullRomCurve3(vectors);
 
-    const tubeGeometry = new THREE.TubeGeometry(
-      curve,
-      100,
-      20,
-      5,
-      false
-    );
-    const material = new THREE.MeshLambertMaterial( { color: 0xff00ff } );
+    const tubeGeometry = new THREE.TubeGeometry(curve, 100, 20, 5, false);
+    const material = new THREE.MeshLambertMaterial({ color: 0xff00ff });
     const mesh = new THREE.Mesh(tubeGeometry, material);
     this.scene?.add(mesh);
   }
