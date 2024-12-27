@@ -165,7 +165,6 @@ export function createWall(json) {
     }
     // floor
     const floor = createPlaneMesh(floorPoints, 0, new THREE.MeshBasicMaterial({ color: bottomColor, side: THREE.DoubleSide, map: floorMap }));
-    floor.receiveShadow = true;
     wall.add(floor);
     // roof
     wall.add(createPlaneMesh(floorPoints, wallHeight, new THREE.MeshBasicMaterial({ color: bottomColor, side: THREE.BackSide, map: roofMap })));

@@ -100,6 +100,7 @@ export class Viewer {
       this.camera!,
       this.renderer!.domElement
     );
+    this.cameraControls.maxPolarAngle = Math.PI / 2;
   }
 
   protected initScene() {
@@ -129,7 +130,7 @@ export class Viewer {
     this.scene?.add(light1);
 
     const light2 = new THREE.DirectionalLight(0xffffff, 1);
-    light2.position.set(0.5, 0, 0.866).multiplyScalar(300); // ~60º
+    light2.position.set(0.5, 1, 0.866).multiplyScalar(300); // ~60º
     light2.name = "main_light";
     this.scene?.add(light2);
   }
@@ -187,6 +188,7 @@ export class Viewer {
       this.animiteObject(frontDoor);
       const backDoor = this.rackObject.getObjectByName("rack-back-door")!;
       this.animiteObject(backDoor);
+      this.rackObject = undefined;
     }
     this.clearHighlight();
     this.cameraControls?.reset(true);
@@ -236,16 +238,15 @@ export class Viewer {
     const position = lookAt.clone().add(direction.multiplyScalar(distance!));
 
     // 飞向机柜门正面
-    return this.cameraControls
-      ?.setLookAt(
-        position.x,
-        position.y,
-        position.z,
-        lookAt.x,
-        lookAt.y,
-        lookAt.z,
-        true
-      );
+    return this.cameraControls?.setLookAt(
+      position.x,
+      position.y,
+      position.z,
+      lookAt.x,
+      lookAt.y,
+      lookAt.z,
+      true
+    );
   }
 
   protected animiteObject(object: THREE.Object3D) {
@@ -383,16 +384,34 @@ export class Viewer {
   // @ts-ignore
   private createPathFlight() {
     const points = [
-      [-2108.1056622497044, 0, -1768.2852733169518],
-      [-2090.8022641659068, 0, -8.999541340935856],
-      [252.92217113182915, 0, -21.646393904821025],
-      [2579.693282778835, 0, -16.824099103697677],
-      [2488.183270612835, 0, 1271.4025633512294],
-      [321.0467169543589, 0, 1261.9262629538507],
-      [-2131.2017368499573, 0, 1230.3146832488842],
+      [-2108.1056622497044, 140, -1768.2852733169518],
+      [-2090.8022641659068, 140, -8.999541340935856],
+      [252.92217113182915, 140, -21.646393904821025],
+      [2579.693282778835, 140, -16.824099103697677],
+      [2488.183270612835, 140, 1271.4025633512294],
+      [321.0467169543589, 140, 1261.9262629538507],
+      [-2131.2017368499573, 140, 1230.3146832488842],
     ];
     const vectors = points.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
-    const curve = new THREE.CatmullRomCurve3(vectors);
+    const curve = new THREE.CatmullRomCurve3(vectors, false, "catmullrom", 0.1);
+
+    new Tween({ t: 0 }, this.tween)
+      .to({ t: 0.99 }, 20 * 1000)
+      .easing(Easing.Linear.Out)
+      .onUpdate((v) => {
+        const eye = curve.getPointAt(v.t);
+        const lookAt = curve.getPointAt(v.t + 0.01);
+        this.cameraControls?.setLookAt(
+          eye.x,
+          eye.y,
+          eye.z,
+          lookAt.x,
+          lookAt.y,
+          lookAt.z,
+          false
+        );
+      })
+      .start();
 
     const tubeGeometry = new THREE.TubeGeometry(curve, 100, 20, 5, false);
     const material = new THREE.MeshLambertMaterial({ color: 0xff00ff });
